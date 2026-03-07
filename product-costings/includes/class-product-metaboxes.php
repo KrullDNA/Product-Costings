@@ -23,7 +23,7 @@ class PC_Product_Metaboxes {
 
     private function __construct() {
         add_action( 'add_meta_boxes', array( $this, 'register_metaboxes' ) );
-        add_action( 'save_post_product', array( $this, 'save_meta' ), 10, 2 );
+        add_action( 'save_post_products', array( $this, 'save_meta' ), 10, 2 );
     }
 
     public function register_metaboxes() {
@@ -31,7 +31,7 @@ class PC_Product_Metaboxes {
             'pc_formula_ingredients',
             __( 'Formula Ingredients', 'product-costings' ),
             array( $this, 'render_formula_metabox' ),
-            'product',
+            'products',
             'normal',
             'high'
         );
@@ -40,7 +40,7 @@ class PC_Product_Metaboxes {
             'pc_product_costs',
             __( 'Product Costing', 'product-costings' ),
             array( $this, 'render_costing_metabox' ),
-            'product',
+            'products',
             'normal',
             'default'
         );
@@ -49,7 +49,7 @@ class PC_Product_Metaboxes {
             'pc_product_method',
             __( 'Method', 'product-costings' ),
             array( $this, 'render_method_metabox' ),
-            'product',
+            'products',
             'normal',
             'default'
         );

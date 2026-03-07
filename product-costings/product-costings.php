@@ -49,8 +49,8 @@ final class Product_Costings {
         global $post_type;
 
         // Load on product edit screens and our settings page.
-        $is_product_screen = in_array( $hook, array( 'post.php', 'post-new.php' ), true ) && 'product' === $post_type;
-        $is_settings_page  = 'product_page_pc-formula-functions' === $hook;
+        $is_product_screen = in_array( $hook, array( 'post.php', 'post-new.php' ), true ) && 'products' === $post_type;
+        $is_settings_page  = 'products_page_pc-formula-functions' === $hook;
 
         if ( ! $is_product_screen && ! $is_settings_page ) {
             return;
@@ -76,7 +76,7 @@ final class Product_Costings {
      */
     public function add_admin_menu() {
         add_submenu_page(
-            'edit.php?post_type=product',
+            'edit.php?post_type=products',
             __( 'Formula Functions', 'product-costings' ),
             __( 'Formula Functions', 'product-costings' ),
             'manage_options',
