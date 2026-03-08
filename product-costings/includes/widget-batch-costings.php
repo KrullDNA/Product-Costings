@@ -103,6 +103,22 @@ class PC_Widget_Batch_Costings extends \Elementor\Widget_Base {
             'step'        => 0.5,
         ) );
 
+        $this->add_control( 'label_overrides_heading', array(
+            'label'     => esc_html__( 'Label Overrides', 'product-costings' ),
+            'type'      => \Elementor\Controls_Manager::HEADING,
+            'separator' => 'before',
+        ) );
+
+        foreach ( $this->get_metric_options() as $key => $default_label ) {
+            $this->add_control( 'label_' . $key, array(
+                'label'       => $default_label,
+                'type'        => \Elementor\Controls_Manager::TEXT,
+                'default'     => '',
+                'placeholder' => $default_label,
+                'description' => sprintf( esc_html__( 'Leave blank to use "%s".', 'product-costings' ), $default_label ),
+            ) );
+        }
+
         $this->end_controls_section();
 
         /* ── Style: Layout ── */
@@ -284,8 +300,9 @@ class PC_Widget_Batch_Costings extends \Elementor\Widget_Base {
                 continue;
             }
 
-            $raw   = $values[ $key ];
-            $label = $labels[ $key ];
+            $raw      = $values[ $key ];
+            $override = ! empty( $settings[ 'label_' . $key ] ) ? $settings[ 'label_' . $key ] : '';
+            $label    = '' !== $override ? $override : $labels[ $key ];
 
             if ( in_array( $key, $non_currency, true ) ) {
                 $formatted = number_format( $raw, 0 );
