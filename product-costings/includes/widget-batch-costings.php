@@ -300,6 +300,7 @@ class PC_Widget_Batch_Costings extends \Elementor\Widget_Base {
         // Determine which metrics are currency vs. plain number.
         $non_currency    = array( 'total_packaging_units', 'batch_size', 'batch_size_with_waste', 'natural_origin' );
         $whole_number    = array( 'total_packaging_units' );
+        $kg_suffix       = array( 'batch_size', 'batch_size_with_waste' );
         $percent_suffix  = array( 'natural_origin' );
 
         echo '<div class="pc-bc">';
@@ -313,7 +314,9 @@ class PC_Widget_Batch_Costings extends \Elementor\Widget_Base {
             $override = ! empty( $settings[ 'label_' . $key ] ) ? $settings[ 'label_' . $key ] : '';
             $label    = '' !== $override ? $override : $labels[ $key ];
 
-            if ( in_array( $key, $whole_number, true ) ) {
+            if ( in_array( $key, $kg_suffix, true ) ) {
+                $formatted = number_format( $raw, 0 ) . ' kg';
+            } elseif ( in_array( $key, $whole_number, true ) ) {
                 $formatted = number_format( $raw, 0 );
             } elseif ( in_array( $key, $percent_suffix, true ) ) {
                 $formatted = number_format( $raw, 2 ) . '%';
