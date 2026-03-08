@@ -44,6 +44,12 @@
     background-color: transparent !important;
 }
 
+.pc-ft tbody td,
+.pc-ft tbody tr:nth-child(odd) td,
+.pc-ft tbody tr:nth-child(even) td {
+    background-color: transparent !important;
+}
+
 /* ── Footer ── */
 .pc-ft tfoot td {
     background-color: #ffffff;
