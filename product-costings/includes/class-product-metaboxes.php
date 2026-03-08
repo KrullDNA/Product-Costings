@@ -2,8 +2,12 @@
 /**
  * Registers and renders metaboxes on the Products CPT edit screen.
  * - Formula Ingredients repeater
- * - Product costing fields
- * - Method (WYSIWYG)
+ * - Cost Summary (reads existing CPT meta fields for calculations)
+ *
+ * Existing Products CPT meta fields (NOT managed by this plugin):
+ *   batch_size, labour, facility_running_costs, misc_costs,
+ *   packaging_unit_cost, packaging_units_per_batch, unit_size,
+ *   final_ph, cost_price, wholesale, rrp, method
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -37,18 +41,9 @@ class PC_Product_Metaboxes {
         );
 
         add_meta_box(
-            'pc_product_costs',
-            __( 'Product Costing', 'product-costings' ),
-            array( $this, 'render_costing_metabox' ),
-            'products',
-            'normal',
-            'default'
-        );
-
-        add_meta_box(
-            'pc_product_method',
-            __( 'Method', 'product-costings' ),
-            array( $this, 'render_method_metabox' ),
+            'pc_cost_summary',
+            __( 'Cost Summary', 'product-costings' ),
+            array( $this, 'render_cost_summary_metabox' ),
             'products',
             'normal',
             'default'
@@ -74,6 +69,7 @@ class PC_Product_Metaboxes {
                 <thead>
                     <tr>
                         <th class="pc-col-sort">&nbsp;</th>
+                        <th class="pc-col-to100"><?php esc_html_e( 'To 100%', 'product-costings' ); ?></th>
                         <th class="pc-col-phase"><?php esc_html_e( 'Phase', 'product-costings' ); ?></th>
                         <th class="pc-col-ww"><?php esc_html_e( '% w/w', 'product-costings' ); ?></th>
                         <th class="pc-col-trade"><?php esc_html_e( 'Trade Name', 'product-costings' ); ?></th>
@@ -95,7 +91,7 @@ class PC_Product_Metaboxes {
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="2" class="pc-total-label"><strong><?php esc_html_e( 'Total % w/w:', 'product-costings' ); ?></strong></td>
+                        <td colspan="3" class="pc-total-label"><strong><?php esc_html_e( 'Total % w/w:', 'product-costings' ); ?></strong></td>
                         <td id="pc-total-ww"><strong>0.00</strong></td>
                         <td colspan="6"></td>
                     </tr>
@@ -113,6 +109,9 @@ class PC_Product_Metaboxes {
         <script type="text/html" id="tmpl-pc-row">
             <tr class="pc-row" data-index="{{data.i}}">
                 <td class="pc-col-sort pc-drag-handle">&#9776;</td>
+                <td class="pc-col-to100">
+                    <input type="checkbox" name="pc_rows[{{data.i}}][is_to_100]" value="1" class="pc-field-to100">
+                </td>
                 <td class="pc-col-phase">
                     <input type="text" name="pc_rows[{{data.i}}][phase]" value="" placeholder="A" class="pc-field-phase" maxlength="5">
                 </td>
@@ -154,24 +153,26 @@ class PC_Product_Metaboxes {
      * Render a single repeater row.
      */
     private function render_row( $i, $row, $functions ) {
-        $phase        = isset( $row['phase'] ) ? $row['phase'] : '';
-        $ww           = isset( $row['percent_w_w'] ) ? $row['percent_w_w'] : '';
-        $trade_id     = isset( $row['trade_name_id'] ) ? (int) $row['trade_name_id'] : 0;
-        $fn_val       = isset( $row['function'] ) ? $row['function'] : '';
-        $ph           = isset( $row['ph_range'] ) ? $row['ph_range'] : '';
-        $price        = isset( $row['price_per_kg'] ) ? $row['price_per_kg'] : '';
-        $moq          = isset( $row['moq'] ) ? $row['moq'] : '';
-        $is_to_100    = isset( $row['is_to_100'] ) ? (bool) $row['is_to_100'] : false;
+        $phase     = isset( $row['phase'] ) ? $row['phase'] : '';
+        $ww        = isset( $row['percent_w_w'] ) ? $row['percent_w_w'] : '';
+        $trade_id  = isset( $row['trade_name_id'] ) ? (int) $row['trade_name_id'] : 0;
+        $fn_val    = isset( $row['function'] ) ? $row['function'] : '';
+        $ph        = isset( $row['ph_range'] ) ? $row['ph_range'] : '';
+        $price     = isset( $row['price_per_kg'] ) ? $row['price_per_kg'] : '';
+        $moq       = isset( $row['moq'] ) ? $row['moq'] : '';
+        $is_to_100 = isset( $row['is_to_100'] ) ? (bool) $row['is_to_100'] : false;
         ?>
         <tr class="pc-row <?php echo $is_to_100 ? 'pc-row-to100' : ''; ?>" data-index="<?php echo (int) $i; ?>">
             <td class="pc-col-sort pc-drag-handle">&#9776;</td>
+            <td class="pc-col-to100">
+                <input type="checkbox" name="pc_rows[<?php echo (int) $i; ?>][is_to_100]" value="1" class="pc-field-to100" <?php checked( $is_to_100 ); ?>>
+            </td>
             <td class="pc-col-phase">
                 <input type="text" name="pc_rows[<?php echo (int) $i; ?>][phase]" value="<?php echo esc_attr( $phase ); ?>" placeholder="A" class="pc-field-phase" maxlength="5">
             </td>
             <td class="pc-col-ww">
                 <input type="number" name="pc_rows[<?php echo (int) $i; ?>][percent_w_w]" value="<?php echo esc_attr( $ww ); ?>" step="any" min="0" max="100" class="pc-field-ww" placeholder="0.00" <?php echo $is_to_100 ? 'readonly' : ''; ?>>
                 <?php if ( $is_to_100 ) : ?>
-                    <input type="hidden" name="pc_rows[<?php echo (int) $i; ?>][is_to_100]" value="1">
                     <span class="pc-to100-badge"><?php esc_html_e( 'to 100%', 'product-costings' ); ?></span>
                 <?php endif; ?>
             </td>
@@ -201,11 +202,6 @@ class PC_Product_Metaboxes {
                 <input type="text" name="pc_rows[<?php echo (int) $i; ?>][moq]" value="<?php echo esc_attr( $moq ); ?>" class="pc-field-moq" readonly>
             </td>
             <td class="pc-col-actions">
-                <?php if ( ! $is_to_100 ) : ?>
-                    <button type="button" class="button pc-mark-to100" title="<?php esc_attr_e( 'Set as &quot;to 100%&quot; row', 'product-costings' ); ?>">&#x1F4A7;</button>
-                <?php else : ?>
-                    <button type="button" class="button pc-unmark-to100" title="<?php esc_attr_e( 'Remove &quot;to 100%&quot;', 'product-costings' ); ?>">&#x2716;</button>
-                <?php endif; ?>
                 <button type="button" class="button pc-duplicate-row" title="<?php esc_attr_e( 'Duplicate', 'product-costings' ); ?>">&#x2398;</button>
                 <button type="button" class="button pc-remove-row" title="<?php esc_attr_e( 'Remove', 'product-costings' ); ?>">&#x1F5D1;</button>
             </td>
@@ -214,62 +210,33 @@ class PC_Product_Metaboxes {
     }
 
     /* ───────────────────────────────────────────────
-     * Product Costing Meta Fields
+     * Cost Summary (reads existing CPT meta fields)
      * ─────────────────────────────────────────────── */
 
-    public function render_costing_metabox( $post ) {
-        wp_nonce_field( 'pc_save_costing', 'pc_costing_nonce' );
-
-        $fields = array(
-            'facility_running_costs' => __( 'Facility Running Costs (£)', 'product-costings' ),
-            'labour_manufacturing'   => __( 'Labour Costs – Manufacturing (£)', 'product-costings' ),
-            'labour_filling'         => __( 'Labour Costs – Filling (£)', 'product-costings' ),
-            'batch_size'             => __( 'Batch Size (KG)', 'product-costings' ),
-            'packaging_unit_cost'    => __( 'Packaging Unit Cost (£)', 'product-costings' ),
-            'packaging_size'         => __( 'Packaging Size (g)', 'product-costings' ),
-        );
+    public function render_cost_summary_metabox( $post ) {
         ?>
-        <table class="form-table pc-costing-table">
-            <?php foreach ( $fields as $key => $label ) : ?>
-                <tr>
-                    <th><label for="pc_<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></label></th>
-                    <td>
-                        <input
-                            type="number"
-                            id="pc_<?php echo esc_attr( $key ); ?>"
-                            name="pc_costing[<?php echo esc_attr( $key ); ?>]"
-                            value="<?php echo esc_attr( get_post_meta( $post->ID, '_pc_' . $key, true ) ); ?>"
-                            step="any"
-                            min="0"
-                            class="regular-text pc-costing-field"
-                        >
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-        </table>
-
         <div id="pc-cost-summary" class="pc-cost-summary">
-            <h3><?php esc_html_e( 'Cost Summary (calculated)', 'product-costings' ); ?></h3>
+            <p class="description"><?php esc_html_e( 'Values are calculated automatically from the formula ingredients and the product meta fields above.', 'product-costings' ); ?></p>
             <table class="widefat striped">
                 <tr>
                     <th><?php esc_html_e( 'Raw Material Cost per KG', 'product-costings' ); ?></th>
-                    <td id="pc-raw-cost-kg">—</td>
+                    <td id="pc-raw-cost-kg">&mdash;</td>
                 </tr>
                 <tr>
                     <th><?php esc_html_e( 'Raw Material Cost per Batch', 'product-costings' ); ?></th>
-                    <td id="pc-raw-cost-batch">—</td>
-                </tr>
-                <tr>
-                    <th><?php esc_html_e( 'Cost per Unit', 'product-costings' ); ?></th>
-                    <td id="pc-cost-unit">—</td>
+                    <td id="pc-raw-cost-batch">&mdash;</td>
                 </tr>
                 <tr>
                     <th><?php esc_html_e( 'Units per Batch', 'product-costings' ); ?></th>
-                    <td id="pc-units-batch">—</td>
+                    <td id="pc-units-batch">&mdash;</td>
                 </tr>
                 <tr>
                     <th><?php esc_html_e( 'Total Batch Cost', 'product-costings' ); ?></th>
-                    <td id="pc-batch-cost">—</td>
+                    <td id="pc-batch-cost">&mdash;</td>
+                </tr>
+                <tr>
+                    <th><?php esc_html_e( 'Cost per Unit', 'product-costings' ); ?></th>
+                    <td id="pc-cost-unit">&mdash;</td>
                 </tr>
             </table>
         </div>
@@ -277,24 +244,10 @@ class PC_Product_Metaboxes {
     }
 
     /* ───────────────────────────────────────────────
-     * Method WYSIWYG
-     * ─────────────────────────────────────────────── */
-
-    public function render_method_metabox( $post ) {
-        $content = get_post_meta( $post->ID, '_pc_method', true );
-        wp_editor( $content, 'pc_method_editor', array(
-            'textarea_name' => 'pc_method',
-            'textarea_rows' => 10,
-            'media_buttons' => true,
-        ) );
-    }
-
-    /* ───────────────────────────────────────────────
      * Save
      * ─────────────────────────────────────────────── */
 
     public function save_meta( $post_id, $post ) {
-        // Skip autosaves and revisions.
         if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
             return;
         }
@@ -326,28 +279,6 @@ class PC_Product_Metaboxes {
             }
 
             update_post_meta( $post_id, '_pc_formula_rows', $clean );
-        }
-
-        // --- Costing fields ---
-        if ( isset( $_POST['pc_costing_nonce'] ) && wp_verify_nonce( $_POST['pc_costing_nonce'], 'pc_save_costing' ) ) {
-            $costing = isset( $_POST['pc_costing'] ) ? (array) $_POST['pc_costing'] : array();
-            $allowed = array(
-                'facility_running_costs',
-                'labour_manufacturing',
-                'labour_filling',
-                'batch_size',
-                'packaging_unit_cost',
-                'packaging_size',
-            );
-            foreach ( $allowed as $key ) {
-                $value = isset( $costing[ $key ] ) ? floatval( $costing[ $key ] ) : '';
-                update_post_meta( $post_id, '_pc_' . $key, $value );
-            }
-        }
-
-        // --- Method ---
-        if ( isset( $_POST['pc_method'] ) ) {
-            update_post_meta( $post_id, '_pc_method', wp_kses_post( $_POST['pc_method'] ) );
         }
     }
 }

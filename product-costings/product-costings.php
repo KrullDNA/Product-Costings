@@ -60,8 +60,7 @@ final class Product_Costings {
 
         if ( $is_product_screen ) {
             wp_enqueue_script( 'jquery-ui-sortable' );
-            wp_enqueue_editor();
-            wp_enqueue_script( 'pc-admin', PC_PLUGIN_URL . 'assets/js/admin.js', array( 'jquery', 'jquery-ui-sortable', 'wp-editor' ), PC_VERSION, true );
+            wp_enqueue_script( 'pc-admin', PC_PLUGIN_URL . 'assets/js/admin.js', array( 'jquery', 'jquery-ui-sortable', 'wp-util' ), PC_VERSION, true );
 
             wp_localize_script( 'pc-admin', 'pcData', array(
                 'ajaxUrl'   => admin_url( 'admin-ajax.php' ),

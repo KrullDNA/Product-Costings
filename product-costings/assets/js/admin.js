@@ -38,7 +38,7 @@
         },
 
         /* ──────────────────────────────
-         * Trade Name select2-style search
+         * Trade Name autocomplete search
          * ────────────────────────────── */
         initTradeNameSelects: function () {
             this.$body.find('.pc-field-trade-name').each(function () {
@@ -47,13 +47,10 @@
         },
 
         initSingleTradeSelect: function ($select) {
-            // Only init once.
             if ($select.data('pc-init')) return;
             $select.data('pc-init', true);
 
             var $row = $select.closest('.pc-row');
-
-            // Build a simple autocomplete wrapper.
             var $wrapper = $('<div class="pc-trade-search-wrap"></div>');
             var $input   = $('<input type="text" class="pc-trade-search" placeholder="Search trade names…">');
             var $list    = $('<ul class="pc-trade-results"></ul>');
@@ -61,7 +58,7 @@
             $select.after($wrapper);
             $select.hide();
 
-            // Show selected value.
+            // Show current selected value.
             if ($select.val()) {
                 $input.val($select.find('option:selected').text());
             }
@@ -95,7 +92,7 @@
                 }, 300);
             });
 
-            // Select a result.
+            // Select a result — fetch meta data.
             $list.on('click', 'li:not(.pc-no-results)', function () {
                 var id   = $(this).data('id');
                 var text = $(this).text();
@@ -103,16 +100,14 @@
                 $input.val(text);
                 $list.empty().hide();
 
-                // Fetch meta.
+                // Fetch pH, price_per_kg, moq from trade name.
                 PC.fetchTradeMeta(id, $row);
             });
 
-            // Hide results on blur.
             $input.on('blur', function () {
                 setTimeout(function () { $list.empty().hide(); }, 200);
             });
 
-            // Clear button.
             $input.on('keydown', function (e) {
                 if (e.key === 'Escape') {
                     $select.val('').html('<option value="">— Select —</option>');
@@ -125,19 +120,25 @@
             });
         },
 
+        /**
+         * Fetch meta from a Trade Name post and populate the row fields.
+         */
         fetchTradeMeta: function (postId, $row) {
             $.ajax({
                 url: pcData.ajaxUrl,
                 data: { action: 'pc_get_trade_name_meta', nonce: pcData.nonce, post_id: postId },
                 success: function (res) {
-                    if (res.success) {
+                    if (res.success && res.data) {
                         $row.find('.pc-field-ph').val(res.data.ph_range || '');
                         $row.find('.pc-field-price').val(res.data.price_per_kg || '');
                         $row.find('.pc-field-moq').val(res.data.moq || '');
 
-                        // Optionally pre-select function if available.
+                        // Pre-select function if trade name has one.
                         if (res.data.function1) {
-                            $row.find('.pc-field-function').val(res.data.function1);
+                            var $fnSelect = $row.find('.pc-field-function');
+                            if ($fnSelect.find('option[value="' + res.data.function1 + '"]').length) {
+                                $fnSelect.val(res.data.function1);
+                            }
                         }
 
                         PC.recalcCostSummary();
@@ -167,15 +168,16 @@
 
             // Duplicate row.
             this.$wrap.on('click', '.pc-duplicate-row', function () {
-                var $row  = $(this).closest('.pc-row');
+                var $row   = $(this).closest('.pc-row');
                 var $clone = $row.clone();
-                // Update index.
                 var newIdx = self.nextIndex++;
+
                 $clone.attr('data-index', newIdx);
                 $clone.find('[name]').each(function () {
                     var name = $(this).attr('name');
                     $(this).attr('name', name.replace(/pc_rows\[\d+\]/, 'pc_rows[' + newIdx + ']'));
                 });
+
                 // Re-init trade name search on clone.
                 $clone.find('.pc-trade-search-wrap').remove();
                 $clone.find('.pc-field-trade-name').show().data('pc-init', false);
@@ -185,45 +187,32 @@
                 self.recalcCostSummary();
             });
 
-            // Mark as "to 100%" row.
-            this.$wrap.on('click', '.pc-mark-to100', function () {
-                // Remove existing to100 markers.
-                self.$body.find('.pc-row-to100').each(function () {
-                    $(this).removeClass('pc-row-to100');
-                    var $ww = $(this).find('.pc-field-ww');
-                    $ww.removeAttr('readonly');
-                    $(this).find('.pc-to100-badge').remove();
-                    $(this).find('input[name$="[is_to_100]"]').remove();
-                    // Restore buttons.
-                    var idx = $(this).data('index');
-                    $(this).find('.pc-unmark-to100').replaceWith(
-                        '<button type="button" class="button pc-mark-to100" title="Set as to 100% row">&#x1F4A7;</button>'
-                    );
-                });
+            // "To 100%" checkbox — only one row can be checked at a time.
+            this.$wrap.on('change', '.pc-field-to100', function () {
+                var $checkbox = $(this);
+                var $row = $checkbox.closest('.pc-row');
 
-                var $row = $(this).closest('.pc-row');
-                $row.addClass('pc-row-to100');
-                var $ww = $row.find('.pc-field-ww');
-                $ww.attr('readonly', true);
-                $ww.after('<input type="hidden" name="pc_rows[' + $row.data('index') + '][is_to_100]" value="1"><span class="pc-to100-badge">to 100%</span>');
+                if ($checkbox.is(':checked')) {
+                    // Uncheck all other to-100% checkboxes.
+                    self.$body.find('.pc-field-to100').not($checkbox).each(function () {
+                        $(this).prop('checked', false);
+                        var $otherRow = $(this).closest('.pc-row');
+                        $otherRow.removeClass('pc-row-to100');
+                        $otherRow.find('.pc-field-ww').removeAttr('readonly');
+                        $otherRow.find('.pc-to100-badge').remove();
+                    });
 
-                $(this).replaceWith(
-                    '<button type="button" class="button pc-unmark-to100" title="Remove to 100%">&#x2716;</button>'
-                );
+                    $row.addClass('pc-row-to100');
+                    $row.find('.pc-field-ww').attr('readonly', true);
+                    if (!$row.find('.pc-to100-badge').length) {
+                        $row.find('.pc-field-ww').after('<span class="pc-to100-badge">to 100%</span>');
+                    }
+                } else {
+                    $row.removeClass('pc-row-to100');
+                    $row.find('.pc-field-ww').removeAttr('readonly');
+                    $row.find('.pc-to100-badge').remove();
+                }
 
-                self.recalcTo100();
-            });
-
-            // Unmark "to 100%".
-            this.$wrap.on('click', '.pc-unmark-to100', function () {
-                var $row = $(this).closest('.pc-row');
-                $row.removeClass('pc-row-to100');
-                $row.find('.pc-field-ww').removeAttr('readonly');
-                $row.find('.pc-to100-badge').remove();
-                $row.find('input[name$="[is_to_100]"]').remove();
-                $(this).replaceWith(
-                    '<button type="button" class="button pc-mark-to100" title="Set as to 100% row">&#x1F4A7;</button>'
-                );
                 self.recalcTo100();
             });
 
@@ -233,10 +222,23 @@
                 self.recalcCostSummary();
             });
 
-            // Recalc on costing fields change.
-            $(document).on('input change', '.pc-costing-field', function () {
-                self.recalcCostSummary();
-            });
+            // Recalc cost summary when existing CPT meta fields change.
+            // These are the field names from the existing Products CPT meta fields.
+            $(document).on('input change',
+                '#acf-field_batch_size, #acf-field_labour, #acf-field_facility_running_costs, ' +
+                '#acf-field_misc_costs, #acf-field_packaging_unit_cost, #acf-field_packaging_units_per_batch, ' +
+                '#acf-field_unit_size, ' +
+                'input[name="batch_size"], input[name="labour"], input[name="facility_running_costs"], ' +
+                'input[name="misc_costs"], input[name="packaging_unit_cost"], input[name="packaging_units_per_batch"], ' +
+                'input[name="unit_size"], ' +
+                // Also handle ACF field wrappers by data attribute.
+                '[data-name="batch_size"] input, [data-name="labour"] input, [data-name="facility_running_costs"] input, ' +
+                '[data-name="misc_costs"] input, [data-name="packaging_unit_cost"] input, [data-name="packaging_units_per_batch"] input, ' +
+                '[data-name="unit_size"] input',
+                function () {
+                    self.recalcCostSummary();
+                }
+            );
         },
 
         /* ──────────────────────────────
@@ -291,6 +293,7 @@
             $to100Row.find('.pc-field-ww').val(to100val);
 
             this.updateTotal();
+            this.recalcCostSummary();
         },
 
         updateTotal: function () {
@@ -302,10 +305,36 @@
         },
 
         /* ──────────────────────────────
+         * Helper: get a value from an existing CPT meta field.
+         * Tries multiple selector patterns (ACF, Metabox, plain).
+         * ────────────────────────────── */
+        getFieldValue: function (fieldName) {
+            var val;
+
+            // Try ACF field wrapper: [data-name="fieldName"] input
+            val = $('[data-name="' + fieldName + '"] input').val();
+            if (val) return parseFloat(val) || 0;
+
+            // Try input[name="fieldName"]
+            val = $('input[name="' + fieldName + '"]').val();
+            if (val) return parseFloat(val) || 0;
+
+            // Try ACF-style id: #acf-field_fieldName
+            val = $('#acf-field_' + fieldName).val();
+            if (val) return parseFloat(val) || 0;
+
+            return 0;
+        },
+
+        /* ──────────────────────────────
          * Cost Summary Calculation
+         *
+         * Uses existing Products CPT meta fields:
+         *   batch_size, labour, facility_running_costs, misc_costs,
+         *   packaging_unit_cost, packaging_units_per_batch, unit_size
          * ────────────────────────────── */
         recalcCostSummary: function () {
-            // Raw material cost per KG = sum of (percent_w_w / 100 * price_per_kg) for each row.
+            // Raw material cost per KG = sum of (percent_w_w / 100 * price_per_kg).
             var rawCostPerKg = 0;
             this.$body.find('.pc-row').each(function () {
                 var ww    = parseFloat($(this).find('.pc-field-ww').val()) || 0;
@@ -313,20 +342,25 @@
                 rawCostPerKg += (ww / 100) * price;
             });
 
-            var batchSize      = parseFloat($('#pc_batch_size').val()) || 0;
-            var facilityCosts  = parseFloat($('#pc_facility_running_costs').val()) || 0;
-            var labourMfg      = parseFloat($('#pc_labour_manufacturing').val()) || 0;
-            var labourFill     = parseFloat($('#pc_labour_filling').val()) || 0;
-            var packagingUnit  = parseFloat($('#pc_packaging_unit_cost').val()) || 0;
-            var packagingSize  = parseFloat($('#pc_packaging_size').val()) || 0;
+            // Read existing CPT meta fields.
+            var batchSize         = this.getFieldValue('batch_size');
+            var labour            = this.getFieldValue('labour');
+            var facilityCosts     = this.getFieldValue('facility_running_costs');
+            var miscCosts         = this.getFieldValue('misc_costs');
+            var packagingUnitCost = this.getFieldValue('packaging_unit_cost');
+            var unitsPerBatch     = this.getFieldValue('packaging_units_per_batch');
+            var unitSize          = this.getFieldValue('unit_size'); // packaging size in grams
 
-            var rawCostBatch = rawCostPerKg * batchSize;
-            var unitsPerBatch = packagingSize > 0 ? Math.floor((batchSize * 1000) / packagingSize) : 0;
+            // If units_per_batch not set, calculate from batch_size and unit_size.
+            if (!unitsPerBatch && unitSize > 0 && batchSize > 0) {
+                unitsPerBatch = Math.floor((batchSize * 1000) / unitSize);
+            }
 
-            var totalBatchCost = rawCostBatch + facilityCosts + labourMfg + labourFill + (packagingUnit * unitsPerBatch);
-            var costPerUnit = unitsPerBatch > 0 ? totalBatchCost / unitsPerBatch : 0;
+            var rawCostBatch   = rawCostPerKg * batchSize;
+            var totalBatchCost = rawCostBatch + facilityCosts + labour + miscCosts + (packagingUnitCost * unitsPerBatch);
+            var costPerUnit    = unitsPerBatch > 0 ? totalBatchCost / unitsPerBatch : 0;
 
-            $('#pc-raw-cost-kg').text('£' + rawCostPerKg.toFixed(4));
+            $('#pc-raw-cost-kg').text(rawCostPerKg > 0 ? '£' + rawCostPerKg.toFixed(4) : '—');
             $('#pc-raw-cost-batch').text(batchSize > 0 ? '£' + rawCostBatch.toFixed(2) : '—');
             $('#pc-units-batch').text(unitsPerBatch > 0 ? unitsPerBatch : '—');
             $('#pc-batch-cost').text(totalBatchCost > 0 ? '£' + totalBatchCost.toFixed(2) : '—');
