@@ -129,7 +129,7 @@
                 data: { action: 'pc_get_trade_name_meta', nonce: pcData.nonce, post_id: postId },
                 success: function (res) {
                     if (res.success && res.data) {
-                        $row.find('.pc-field-ph').val(res.data.ph_range || '');
+                        $row.find('.pc-field-ph').val(res.data.ph || '');
                         $row.find('.pc-field-price').val(res.data.price_per_kg || '');
                         $row.find('.pc-field-moq').val(res.data.moq || '');
 

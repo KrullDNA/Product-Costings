@@ -95,21 +95,21 @@ class PC_Ajax_Handler {
         }
 
         // Try multiple meta key variants for each field.
-        $ph_range     = $this->get_meta_value( $post_id, array(
-            'ph_range', '_ph_range', 'pH_range', 'ph', '_ph', 'pH',
+        $ph           = $this->get_meta_value( $post_id, array(
+            'ph-range', 'ph_range', '_ph_range', 'pH_range', 'ph', '_ph', 'pH',
         ) );
         $price_per_kg = $this->get_meta_value( $post_id, array(
-            'price_per_kg', '_price_per_kg', 'price_kg', '_price_kg', 'price',
+            'tn_price_per_kg', 'price_per_kg', '_price_per_kg', 'price_kg', '_price_kg', 'price',
         ) );
         $moq          = $this->get_meta_value( $post_id, array(
-            'moq', '_moq', 'MOQ', '_MOQ',
+            'tn_moq', 'moq', '_moq', 'MOQ', '_MOQ',
         ) );
         $function1    = $this->get_meta_value( $post_id, array(
             'function1', '_function1', 'function', '_function',
         ) );
 
         wp_send_json_success( array(
-            'ph_range'     => $ph_range,
+            'ph'           => $ph,
             'price_per_kg' => $price_per_kg,
             'moq'          => $moq,
             'function1'    => $function1,

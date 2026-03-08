@@ -132,7 +132,7 @@ class PC_Product_Metaboxes {
                     </select>
                 </td>
                 <td class="pc-col-ph">
-                    <input type="text" name="pc_rows[{{data.i}}][ph_range]" value="" class="pc-field-ph" readonly>
+                    <input type="text" name="pc_rows[{{data.i}}][ph]" value="" class="pc-field-ph" readonly>
                 </td>
                 <td class="pc-col-price">
                     <input type="text" name="pc_rows[{{data.i}}][price_per_kg]" value="" class="pc-field-price" readonly>
@@ -157,7 +157,7 @@ class PC_Product_Metaboxes {
         $ww        = isset( $row['percent_w_w'] ) ? $row['percent_w_w'] : '';
         $trade_id  = isset( $row['trade_name_id'] ) ? (int) $row['trade_name_id'] : 0;
         $fn_val    = isset( $row['function'] ) ? $row['function'] : '';
-        $ph        = isset( $row['ph_range'] ) ? $row['ph_range'] : '';
+        $ph        = isset( $row['ph'] ) ? $row['ph'] : ( isset( $row['ph_range'] ) ? $row['ph_range'] : '' );
         $price     = isset( $row['price_per_kg'] ) ? $row['price_per_kg'] : '';
         $moq       = isset( $row['moq'] ) ? $row['moq'] : '';
         $is_to_100 = isset( $row['is_to_100'] ) ? (bool) $row['is_to_100'] : false;
@@ -193,7 +193,7 @@ class PC_Product_Metaboxes {
                 </select>
             </td>
             <td class="pc-col-ph">
-                <input type="text" name="pc_rows[<?php echo (int) $i; ?>][ph_range]" value="<?php echo esc_attr( $ph ); ?>" class="pc-field-ph" readonly>
+                <input type="text" name="pc_rows[<?php echo (int) $i; ?>][ph]" value="<?php echo esc_attr( $ph ); ?>" class="pc-field-ph" readonly>
             </td>
             <td class="pc-col-price">
                 <input type="text" name="pc_rows[<?php echo (int) $i; ?>][price_per_kg]" value="<?php echo esc_attr( $price ); ?>" class="pc-field-price" readonly>
@@ -270,7 +270,7 @@ class PC_Product_Metaboxes {
                         'percent_w_w'  => floatval( $row['percent_w_w'] ?? 0 ),
                         'trade_name_id'=> absint( $row['trade_name_id'] ?? 0 ),
                         'function'     => sanitize_text_field( $row['function'] ?? '' ),
-                        'ph_range'     => sanitize_text_field( $row['ph_range'] ?? '' ),
+                        'ph'           => sanitize_text_field( $row['ph'] ?? '' ),
                         'price_per_kg' => sanitize_text_field( $row['price_per_kg'] ?? '' ),
                         'moq'          => sanitize_text_field( $row['moq'] ?? '' ),
                         'is_to_100'    => ! empty( $row['is_to_100'] ) ? true : false,
