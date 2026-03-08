@@ -331,10 +331,10 @@ class PC_Widget_Batch_Costings extends \Elementor\Widget_Base {
         }
 
         // ── Total Packaging Units ──
-        // batch_size is in kg, unit_size is in grams/ml.
+        // Uses base batch size (without waste), unit_size is in grams/ml.
         // Convert unit_size to kg: unit_size / 1000.
         $pkg_volume_kg       = $unit_size > 0 ? $unit_size / 1000 : 0;
-        $total_packaging_units = $pkg_volume_kg > 0 ? floor( $batch_size / $pkg_volume_kg ) : 0;
+        $total_packaging_units = $pkg_volume_kg > 0 ? floor( $batch_size_raw / $pkg_volume_kg ) : 0;
 
         // ── Batch Cost ──
         // For each ingredient: round up kg_per_batch to next MOQ multiple, then multiply by price/kg.
