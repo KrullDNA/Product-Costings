@@ -73,6 +73,16 @@ class PC_Widget_Formula_Table extends \Elementor\Widget_Base {
             'default' => '$',
         ) );
 
+        $this->add_control( 'waste_percent', array(
+            'label'       => esc_html__( 'Waste %', 'product-costings' ),
+            'type'        => \Elementor\Controls_Manager::NUMBER,
+            'description' => esc_html__( 'Manufacturing waste allowance added to batch size (e.g. 2 for 2%).', 'product-costings' ),
+            'default'     => 2,
+            'min'         => 0,
+            'max'         => 50,
+            'step'        => 0.5,
+        ) );
+
         $this->add_control( 'empty_message', array(
             'label'   => esc_html__( 'Empty Table Message', 'product-costings' ),
             'type'    => \Elementor\Controls_Manager::TEXT,
@@ -296,8 +306,10 @@ class PC_Widget_Formula_Table extends \Elementor\Widget_Base {
             return;
         }
 
-        $batch_size = $this->get_product_meta_value( $product_id, 'batch_size' );
-        $currency   = $settings['currency_symbol'];
+        $batch_size_raw = $this->get_product_meta_value( $product_id, 'batch_size' );
+        $waste_pct      = isset( $settings['waste_percent'] ) ? floatval( $settings['waste_percent'] ) : 2;
+        $batch_size     = $batch_size_raw * ( 1 + $waste_pct / 100 );
+        $currency       = $settings['currency_symbol'];
 
         // Sort rows by phase letter, preserving manual order within each phase.
         $rows = $this->sort_by_phase( $rows );
