@@ -39,7 +39,13 @@
 }
 
 .pc-ft tbody tr {
+    background-color: transparent;
+}
+
+/* ── Footer ── */
+.pc-ft tfoot td {
     background-color: #ffffff;
+    border: none;
 }
 
 .pc-ft tbody tr:last-child td {

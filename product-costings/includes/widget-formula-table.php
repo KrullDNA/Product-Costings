@@ -159,16 +159,6 @@ class PC_Widget_Formula_Table extends \Elementor\Widget_Base {
             'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
         ) );
 
-        $this->add_control( 'row_bg_color', array(
-            'label'     => esc_html__( 'Row Background (fallback)', 'product-costings' ),
-            'type'      => \Elementor\Controls_Manager::COLOR,
-            'default'   => '#ffffff',
-            'description' => esc_html__( 'Used when a phase has no colour assigned.', 'product-costings' ),
-            'selectors' => array(
-                '{{WRAPPER}} .pc-ft tbody tr' => 'background-color: {{VALUE}};',
-            ),
-        ) );
-
         $this->add_control( 'row_border_color', array(
             'label'     => esc_html__( 'Row Border Color', 'product-costings' ),
             'type'      => \Elementor\Controls_Manager::COLOR,
@@ -192,6 +182,37 @@ class PC_Widget_Formula_Table extends \Elementor\Widget_Base {
             'selectors'  => array(
                 '{{WRAPPER}} .pc-ft tbody td' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
             ),
+        ) );
+
+        $this->end_controls_section();
+
+        /* ── Footer Row Style ── */
+        $this->start_controls_section( 'section_style_footer', array(
+            'label' => esc_html__( 'Footer Row', 'product-costings' ),
+            'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
+        ) );
+
+        $this->add_control( 'footer_bg_color', array(
+            'label'     => esc_html__( 'Background Color', 'product-costings' ),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'default'   => '#ffffff',
+            'selectors' => array(
+                '{{WRAPPER}} .pc-ft tfoot td' => 'background-color: {{VALUE}};',
+            ),
+        ) );
+
+        $this->add_control( 'footer_text_color', array(
+            'label'     => esc_html__( 'Text Color', 'product-costings' ),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'selectors' => array(
+                '{{WRAPPER}} .pc-ft tfoot td' => 'color: {{VALUE}};',
+            ),
+        ) );
+
+        $this->add_group_control( \Elementor\Group_Control_Typography::get_type(), array(
+            'name'     => 'footer_typography',
+            'label'    => esc_html__( 'Typography', 'product-costings' ),
+            'selector' => '{{WRAPPER}} .pc-ft tfoot td',
         ) );
 
         $this->end_controls_section();
