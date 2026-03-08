@@ -33,6 +33,22 @@ class PC_Widget_Formula_Table extends \Elementor\Widget_Base {
         return array( 'pc-formula-table-front' );
     }
 
+    /**
+     * Column definitions used for registering per-column style controls.
+     */
+    private function get_column_defs() {
+        return array(
+            'phase'    => array( 'label' => 'Phase',        'class' => 'pc-ft-phase',    'default_align' => 'center' ),
+            'ww'       => array( 'label' => '%w/w',         'class' => 'pc-ft-ww',       'default_align' => 'center' ),
+            'trade'    => array( 'label' => 'Trade Name',   'class' => 'pc-ft-trade',    'default_align' => 'left'   ),
+            'function' => array( 'label' => 'Function',     'class' => 'pc-ft-function', 'default_align' => 'center' ),
+            'ph'       => array( 'label' => 'pH range',     'class' => 'pc-ft-ph',       'default_align' => 'center' ),
+            'cost'     => array( 'label' => 'Cost/Kg',      'class' => 'pc-ft-cost',     'default_align' => 'center' ),
+            'moq'      => array( 'label' => 'MOQ',          'class' => 'pc-ft-moq',      'default_align' => 'center' ),
+            'kgbatch'  => array( 'label' => 'Kg per batch', 'class' => 'pc-ft-kgbatch',  'default_align' => 'center' ),
+        );
+    }
+
     /* ─────────────────────────────────────
      * Controls
      * ───────────────────────────────────── */
@@ -95,6 +111,20 @@ class PC_Widget_Formula_Table extends \Elementor\Widget_Base {
             'selector' => '{{WRAPPER}} .pc-ft thead th',
         ) );
 
+        $this->add_responsive_control( 'header_align', array(
+            'label'     => esc_html__( 'Text Alignment', 'product-costings' ),
+            'type'      => \Elementor\Controls_Manager::CHOOSE,
+            'options'   => array(
+                'left'   => array( 'title' => esc_html__( 'Left', 'product-costings' ),   'icon' => 'eicon-text-align-left' ),
+                'center' => array( 'title' => esc_html__( 'Center', 'product-costings' ), 'icon' => 'eicon-text-align-center' ),
+                'right'  => array( 'title' => esc_html__( 'Right', 'product-costings' ),  'icon' => 'eicon-text-align-right' ),
+            ),
+            'default'   => 'center',
+            'selectors' => array(
+                '{{WRAPPER}} .pc-ft thead th' => 'text-align: {{VALUE}};',
+            ),
+        ) );
+
         $this->add_responsive_control( 'header_padding', array(
             'label'      => esc_html__( 'Padding', 'product-costings' ),
             'type'       => \Elementor\Controls_Manager::DIMENSIONS,
@@ -137,15 +167,6 @@ class PC_Widget_Formula_Table extends \Elementor\Widget_Base {
             ),
         ) );
 
-        $this->add_control( 'row_text_color', array(
-            'label'     => esc_html__( 'Text Color', 'product-costings' ),
-            'type'      => \Elementor\Controls_Manager::COLOR,
-            'default'   => '#333333',
-            'selectors' => array(
-                '{{WRAPPER}} .pc-ft tbody td' => 'color: {{VALUE}};',
-            ),
-        ) );
-
         $this->add_control( 'row_border_color', array(
             'label'     => esc_html__( 'Row Border Color', 'product-costings' ),
             'type'      => \Elementor\Controls_Manager::COLOR,
@@ -155,14 +176,8 @@ class PC_Widget_Formula_Table extends \Elementor\Widget_Base {
             ),
         ) );
 
-        $this->add_group_control( \Elementor\Group_Control_Typography::get_type(), array(
-            'name'     => 'body_typography',
-            'label'    => esc_html__( 'Typography', 'product-costings' ),
-            'selector' => '{{WRAPPER}} .pc-ft tbody td',
-        ) );
-
         $this->add_responsive_control( 'body_padding', array(
-            'label'      => esc_html__( 'Cell Padding', 'product-costings' ),
+            'label'      => esc_html__( 'Row Cell Padding', 'product-costings' ),
             'type'       => \Elementor\Controls_Manager::DIMENSIONS,
             'size_units' => array( 'px', 'em' ),
             'default'    => array(
@@ -177,23 +192,12 @@ class PC_Widget_Formula_Table extends \Elementor\Widget_Base {
             ),
         ) );
 
-        $this->add_control( 'trade_name_heading', array(
-            'label'     => esc_html__( 'Trade Name Column', 'product-costings' ),
-            'type'      => \Elementor\Controls_Manager::HEADING,
-            'separator' => 'before',
-        ) );
-
-        $this->add_control( 'trade_name_bold', array(
-            'label'        => esc_html__( 'Bold Trade Names', 'product-costings' ),
-            'type'         => \Elementor\Controls_Manager::SWITCHER,
-            'default'      => 'yes',
-            'return_value' => 'yes',
-            'selectors'    => array(
-                '{{WRAPPER}} .pc-ft .pc-ft-trade' => 'font-weight: 700;',
-            ),
-        ) );
-
         $this->end_controls_section();
+
+        /* ── Per-column style sections ── */
+        foreach ( $this->get_column_defs() as $key => $col ) {
+            $this->register_column_style_section( $key, $col );
+        }
 
         /* ── Table Style ── */
         $this->start_controls_section( 'section_style_table', array(
@@ -225,6 +229,49 @@ class PC_Widget_Formula_Table extends \Elementor\Widget_Base {
         $this->end_controls_section();
     }
 
+    /**
+     * Register a style section for a single column (typography, color, alignment).
+     */
+    private function register_column_style_section( $key, $col ) {
+        $class = $col['class'];
+
+        $this->start_controls_section( 'section_style_col_' . $key, array(
+            'label' => sprintf( esc_html__( 'Column: %s', 'product-costings' ), $col['label'] ),
+            'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
+        ) );
+
+        $this->add_group_control( \Elementor\Group_Control_Typography::get_type(), array(
+            'name'     => 'col_' . $key . '_typography',
+            'label'    => esc_html__( 'Typography', 'product-costings' ),
+            'selector' => '{{WRAPPER}} .pc-ft td.' . $class,
+        ) );
+
+        $this->add_control( 'col_' . $key . '_color', array(
+            'label'     => esc_html__( 'Text Color', 'product-costings' ),
+            'type'      => \Elementor\Controls_Manager::COLOR,
+            'selectors' => array(
+                '{{WRAPPER}} .pc-ft td.' . $class => 'color: {{VALUE}};',
+            ),
+        ) );
+
+        $this->add_responsive_control( 'col_' . $key . '_align', array(
+            'label'     => esc_html__( 'Alignment', 'product-costings' ),
+            'type'      => \Elementor\Controls_Manager::CHOOSE,
+            'options'   => array(
+                'left'   => array( 'title' => esc_html__( 'Left', 'product-costings' ),   'icon' => 'eicon-text-align-left' ),
+                'center' => array( 'title' => esc_html__( 'Center', 'product-costings' ), 'icon' => 'eicon-text-align-center' ),
+                'right'  => array( 'title' => esc_html__( 'Right', 'product-costings' ),  'icon' => 'eicon-text-align-right' ),
+            ),
+            'default'   => $col['default_align'],
+            'selectors' => array(
+                '{{WRAPPER}} .pc-ft td.' . $class     => 'text-align: {{VALUE}};',
+                '{{WRAPPER}} .pc-ft th.pc-ft-col-' . $key => 'text-align: {{VALUE}};',
+            ),
+        ) );
+
+        $this->end_controls_section();
+    }
+
     /* ─────────────────────────────────────
      * Render
      * ───────────────────────────────────── */
@@ -249,8 +296,8 @@ class PC_Widget_Formula_Table extends \Elementor\Widget_Base {
             return;
         }
 
-        $batch_size     = $this->get_product_meta_value( $product_id, 'batch_size' );
-        $currency       = $settings['currency_symbol'];
+        $batch_size = $this->get_product_meta_value( $product_id, 'batch_size' );
+        $currency   = $settings['currency_symbol'];
 
         // Sort rows by phase letter, preserving manual order within each phase.
         $rows = $this->sort_by_phase( $rows );
@@ -285,15 +332,27 @@ class PC_Widget_Formula_Table extends \Elementor\Widget_Base {
                         $kg_batch   = $batch_size > 0 ? ( $ww / 100 ) * $batch_size : 0;
 
                         $price_num = is_numeric( $price ) ? floatval( $price ) : 0;
+
+                        // Format MOQ with kg suffix.
+                        $moq_display = '';
+                        if ( '' !== $moq && is_numeric( $moq ) ) {
+                            $moq_num     = floatval( $moq );
+                            $moq_display = ( floor( $moq_num ) == $moq_num )
+                                ? number_format( $moq_num, 0 ) . ' kg'
+                                : rtrim( rtrim( number_format( $moq_num, 2 ), '0' ), '.' ) . ' kg';
+                        } elseif ( '' !== $moq ) {
+                            // Already contains text like "1 kg".
+                            $moq_display = $moq;
+                        }
                         ?>
                         <tr>
                             <td class="pc-ft-phase"><?php echo esc_html( $phase ); ?></td>
-                            <td class="pc-ft-ww"><?php echo $ww > 0 ? esc_html( $ww ) : ''; ?></td>
+                            <td class="pc-ft-ww"><?php echo $ww > 0 ? esc_html( $ww . '%' ) : ''; ?></td>
                             <td class="pc-ft-trade"><?php echo esc_html( $trade_name ); ?></td>
                             <td class="pc-ft-function"><?php echo esc_html( $fn ); ?></td>
                             <td class="pc-ft-ph"><?php echo esc_html( $ph ); ?></td>
                             <td class="pc-ft-cost"><?php echo $price_num > 0 ? esc_html( $currency . number_format( $price_num, 2 ) ) : ''; ?></td>
-                            <td class="pc-ft-moq"><?php echo esc_html( $moq ); ?></td>
+                            <td class="pc-ft-moq"><?php echo esc_html( $moq_display ); ?></td>
                             <td class="pc-ft-kgbatch"><?php echo $kg_batch > 0 ? esc_html( number_format( $kg_batch, 2 ) . ' kg' ) : ''; ?></td>
                         </tr>
                     <?php endforeach; ?>
@@ -308,7 +367,6 @@ class PC_Widget_Formula_Table extends \Elementor\Widget_Base {
      * ordering within each phase group.
      */
     private function sort_by_phase( $rows ) {
-        // Assign original index to preserve manual order within a phase.
         foreach ( $rows as $idx => &$row ) {
             $row['_orig_idx'] = $idx;
         }
@@ -322,14 +380,12 @@ class PC_Widget_Formula_Table extends \Elementor\Widget_Base {
                 return $a['_orig_idx'] - $b['_orig_idx'];
             }
 
-            // Empty phases go last.
             if ( '' === $pa ) return 1;
             if ( '' === $pb ) return -1;
 
             return strcmp( $pa, $pb );
         } );
 
-        // Clean up helper key.
         foreach ( $rows as &$row ) {
             unset( $row['_orig_idx'] );
         }
@@ -350,7 +406,6 @@ class PC_Widget_Formula_Table extends \Elementor\Widget_Base {
             }
         }
 
-        // Try ACF get_field as last resort.
         if ( function_exists( 'get_field' ) ) {
             $val = get_field( $field, $post_id );
             if ( $val ) {
