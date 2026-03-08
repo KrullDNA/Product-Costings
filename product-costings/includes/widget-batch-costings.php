@@ -56,6 +56,7 @@ class PC_Widget_Batch_Costings extends \Elementor\Widget_Base {
             'misc_costs'                  => 'Misc Costs',
             'batch_size'                  => 'Batch Size',
             'batch_size_with_waste'       => 'Batch Size with Waste',
+            'natural_origin'              => '% Natural Origin',
         );
     }
 
@@ -297,8 +298,9 @@ class PC_Widget_Batch_Costings extends \Elementor\Widget_Base {
         $labels = $this->get_metric_options();
 
         // Determine which metrics are currency vs. plain number.
-        $non_currency    = array( 'total_packaging_units', 'batch_size', 'batch_size_with_waste' );
+        $non_currency    = array( 'total_packaging_units', 'batch_size', 'batch_size_with_waste', 'natural_origin' );
         $whole_number    = array( 'total_packaging_units' );
+        $percent_suffix  = array( 'natural_origin' );
 
         echo '<div class="pc-bc">';
 
@@ -313,6 +315,8 @@ class PC_Widget_Batch_Costings extends \Elementor\Widget_Base {
 
             if ( in_array( $key, $whole_number, true ) ) {
                 $formatted = number_format( $raw, 0 );
+            } elseif ( in_array( $key, $percent_suffix, true ) ) {
+                $formatted = number_format( $raw, 2 ) . '%';
             } elseif ( in_array( $key, $non_currency, true ) ) {
                 $formatted = number_format( $raw, 2 );
             } else {
@@ -410,6 +414,22 @@ class PC_Widget_Batch_Costings extends \Elementor\Widget_Base {
         // ── RRP ──
         $rrp_value = ceil( $final_unit_cost * $rrp_mul );
 
+        // ── % Natural Origin ──
+        // Weighted average: sum( %w/w × natural-origin ) / sum( %w/w ).
+        $nat_weighted_sum = 0;
+        $nat_ww_sum       = 0;
+        foreach ( $rows as $row ) {
+            $ww       = isset( $row['percent_w_w'] ) ? floatval( $row['percent_w_w'] ) : 0;
+            $trade_id = isset( $row['trade_name_id'] ) ? absint( $row['trade_name_id'] ) : 0;
+            if ( $ww <= 0 || ! $trade_id ) {
+                continue;
+            }
+            $nat_val = floatval( get_post_meta( $trade_id, 'natural-origin', true ) );
+            $nat_weighted_sum += $ww * $nat_val;
+            $nat_ww_sum       += $ww;
+        }
+        $natural_origin = $nat_ww_sum > 0 ? $nat_weighted_sum / $nat_ww_sum : 0;
+
         return array(
             'batch_cost'                 => $batch_cost,
             'total_cost_per_kg'          => $total_cost_per_kg,
@@ -427,6 +447,7 @@ class PC_Widget_Batch_Costings extends \Elementor\Widget_Base {
             'misc_costs'                 => $misc,
             'batch_size'                 => $batch_size_raw,
             'batch_size_with_waste'      => $batch_size,
+            'natural_origin'             => $natural_origin,
         );
     }
 
