@@ -330,10 +330,12 @@ class PC_Widget_Formula_Table extends \Elementor\Widget_Base {
                     </tr>
                 </thead>
                 <tbody>
+                    <?php $total_ww = 0; ?>
                     <?php foreach ( $rows as $row ) : ?>
                         <?php
                         $phase     = isset( $row['phase'] ) ? $row['phase'] : '';
                         $ww        = isset( $row['percent_w_w'] ) ? floatval( $row['percent_w_w'] ) : 0;
+                        $total_ww += $ww;
                         $trade_id  = isset( $row['trade_name_id'] ) ? (int) $row['trade_name_id'] : 0;
                         $fn        = isset( $row['function'] ) ? $row['function'] : '';
                         $ph        = isset( $row['ph'] ) ? $row['ph'] : ( isset( $row['ph_range'] ) ? $row['ph_range'] : '' );
@@ -369,6 +371,13 @@ class PC_Widget_Formula_Table extends \Elementor\Widget_Base {
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
+                <tfoot>
+                    <tr>
+                        <td class="pc-ft-phase"></td>
+                        <td class="pc-ft-ww pc-ft-total"><strong><?php echo esc_html( number_format( $total_ww, 2 ) . '%' ); ?></strong></td>
+                        <td class="pc-ft-trade" colspan="6"><strong><?php esc_html_e( 'Total %w/w', 'product-costings' ); ?></strong></td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
         <?php
