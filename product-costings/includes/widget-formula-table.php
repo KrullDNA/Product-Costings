@@ -247,7 +247,7 @@ class PC_Widget_Formula_Table extends \Elementor\Widget_Base {
                 'type'    => \Elementor\Controls_Manager::COLOR,
                 'default' => $default_color,
                 'selectors' => array(
-                    '{{WRAPPER}} .pc-ft tbody tr[data-phase="' . $letter . '"]' => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .pc-ft tbody tr[data-phase="' . $letter . '"]' => 'background-color: {{VALUE}} !important;',
                 ),
             ) );
         }

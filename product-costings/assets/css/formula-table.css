@@ -38,8 +38,10 @@
     border-top: none;
 }
 
-.pc-ft tbody tr {
-    background-color: transparent;
+.pc-ft tbody tr,
+.pc-ft tbody tr:nth-child(odd),
+.pc-ft tbody tr:nth-child(even) {
+    background-color: transparent !important;
 }
 
 /* ── Footer ── */
