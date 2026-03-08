@@ -408,7 +408,7 @@ class PC_Widget_Batch_Costings extends \Elementor\Widget_Base {
         $wholesale_price = $final_unit_cost * $wholesale_mul;
 
         // ── RRP ──
-        $rrp_value = $final_unit_cost * $rrp_mul;
+        $rrp_value = ceil( $final_unit_cost * $rrp_mul );
 
         return array(
             'batch_cost'                 => $batch_cost,
