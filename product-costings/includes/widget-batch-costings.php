@@ -424,7 +424,7 @@ class PC_Widget_Batch_Costings extends \Elementor\Widget_Base {
             if ( $ww <= 0 || ! $trade_id ) {
                 continue;
             }
-            $nat_val = floatval( get_post_meta( $trade_id, 'natural-origin', true ) );
+            $nat_val = $this->get_trade_name_natural_origin( $trade_id );
             $nat_weighted_sum += $ww * $nat_val;
             $nat_ww_sum       += $ww;
         }
@@ -468,6 +468,36 @@ class PC_Widget_Batch_Costings extends \Elementor\Widget_Base {
             $val = get_field( $field, $post_id );
             if ( $val ) {
                 return floatval( $val );
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Get natural-origin value from a trade name post, trying multiple key variants.
+     */
+    private function get_trade_name_natural_origin( $post_id ) {
+        $keys = array(
+            'natural-origin', '_natural-origin',
+            'natural_origin', '_natural_origin',
+            'naturalorigin',  '_naturalorigin',
+        );
+
+        foreach ( $keys as $key ) {
+            $val = get_post_meta( $post_id, $key, true );
+            if ( '' !== $val && null !== $val && false !== $val ) {
+                return floatval( $val );
+            }
+        }
+
+        // ACF fallback.
+        if ( function_exists( 'get_field' ) ) {
+            foreach ( array( 'natural-origin', 'natural_origin' ) as $acf_key ) {
+                $val = get_field( $acf_key, $post_id );
+                if ( $val ) {
+                    return floatval( $val );
+                }
             }
         }
 
