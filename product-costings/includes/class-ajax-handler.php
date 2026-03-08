@@ -107,13 +107,19 @@ class PC_Ajax_Handler {
         $function1    = $this->get_meta_value( $post_id, array(
             'function1', '_function1', 'function', '_function',
         ) );
+        $natural_origin = $this->get_meta_value( $post_id, array(
+            '-natural-origin', '_-natural-origin',
+            'natural-origin', '_natural-origin',
+            'natural_origin', '_natural_origin',
+        ) );
 
         wp_send_json_success( array(
-            'ph'           => $ph,
-            'price_per_kg' => $price_per_kg,
-            'moq'          => $moq,
-            'function1'    => $function1,
-            'title'        => get_the_title( $post_id ),
+            'ph'             => $ph,
+            'price_per_kg'   => $price_per_kg,
+            'moq'            => $moq,
+            'function1'      => $function1,
+            'natural_origin' => $natural_origin,
+            'title'          => get_the_title( $post_id ),
         ) );
     }
 

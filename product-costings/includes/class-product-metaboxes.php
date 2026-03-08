@@ -139,6 +139,7 @@ class PC_Product_Metaboxes {
                 </td>
                 <td class="pc-col-moq">
                     <input type="text" name="pc_rows[{{data.i}}][moq]" value="" class="pc-field-moq" readonly>
+                    <input type="hidden" name="pc_rows[{{data.i}}][natural_origin]" value="" class="pc-field-natural-origin">
                 </td>
                 <td class="pc-col-actions">
                     <button type="button" class="button pc-duplicate-row" title="<?php esc_attr_e( 'Duplicate', 'product-costings' ); ?>">&#x2398;</button>
@@ -160,6 +161,7 @@ class PC_Product_Metaboxes {
         $ph        = isset( $row['ph'] ) ? $row['ph'] : ( isset( $row['ph_range'] ) ? $row['ph_range'] : '' );
         $price     = isset( $row['price_per_kg'] ) ? $row['price_per_kg'] : '';
         $moq       = isset( $row['moq'] ) ? $row['moq'] : '';
+        $nat_orig  = isset( $row['natural_origin'] ) ? $row['natural_origin'] : '';
         $is_to_100 = isset( $row['is_to_100'] ) ? (bool) $row['is_to_100'] : false;
         ?>
         <tr class="pc-row <?php echo $is_to_100 ? 'pc-row-to100' : ''; ?>" data-index="<?php echo (int) $i; ?>">
@@ -200,6 +202,7 @@ class PC_Product_Metaboxes {
             </td>
             <td class="pc-col-moq">
                 <input type="text" name="pc_rows[<?php echo (int) $i; ?>][moq]" value="<?php echo esc_attr( $moq ); ?>" class="pc-field-moq" readonly>
+                <input type="hidden" name="pc_rows[<?php echo (int) $i; ?>][natural_origin]" value="<?php echo esc_attr( $nat_orig ); ?>" class="pc-field-natural-origin">
             </td>
             <td class="pc-col-actions">
                 <button type="button" class="button pc-duplicate-row" title="<?php esc_attr_e( 'Duplicate', 'product-costings' ); ?>">&#x2398;</button>
@@ -266,14 +269,15 @@ class PC_Product_Metaboxes {
             if ( is_array( $raw_rows ) ) {
                 foreach ( $raw_rows as $row ) {
                     $clean[] = array(
-                        'phase'        => sanitize_text_field( $row['phase'] ?? '' ),
-                        'percent_w_w'  => floatval( $row['percent_w_w'] ?? 0 ),
-                        'trade_name_id'=> absint( $row['trade_name_id'] ?? 0 ),
-                        'function'     => sanitize_text_field( $row['function'] ?? '' ),
-                        'ph'           => sanitize_text_field( $row['ph'] ?? '' ),
-                        'price_per_kg' => sanitize_text_field( $row['price_per_kg'] ?? '' ),
-                        'moq'          => sanitize_text_field( $row['moq'] ?? '' ),
-                        'is_to_100'    => ! empty( $row['is_to_100'] ) ? true : false,
+                        'phase'          => sanitize_text_field( $row['phase'] ?? '' ),
+                        'percent_w_w'    => floatval( $row['percent_w_w'] ?? 0 ),
+                        'trade_name_id'  => absint( $row['trade_name_id'] ?? 0 ),
+                        'function'       => sanitize_text_field( $row['function'] ?? '' ),
+                        'ph'             => sanitize_text_field( $row['ph'] ?? '' ),
+                        'price_per_kg'   => sanitize_text_field( $row['price_per_kg'] ?? '' ),
+                        'moq'            => sanitize_text_field( $row['moq'] ?? '' ),
+                        'natural_origin' => sanitize_text_field( $row['natural_origin'] ?? '' ),
+                        'is_to_100'      => ! empty( $row['is_to_100'] ) ? true : false,
                     );
                 }
             }

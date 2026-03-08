@@ -115,6 +115,7 @@
                     $row.find('.pc-field-ph').val('');
                     $row.find('.pc-field-price').val('');
                     $row.find('.pc-field-moq').val('');
+                    $row.find('.pc-field-natural-origin').val('');
                     $list.empty().hide();
                 }
             });
@@ -132,6 +133,7 @@
                         $row.find('.pc-field-ph').val(res.data.ph || '');
                         $row.find('.pc-field-price').val(res.data.price_per_kg || '');
                         $row.find('.pc-field-moq').val(res.data.moq || '');
+                        $row.find('.pc-field-natural-origin').val(res.data.natural_origin || '');
 
                         // Pre-select function if trade name has one.
                         if (res.data.function1) {
