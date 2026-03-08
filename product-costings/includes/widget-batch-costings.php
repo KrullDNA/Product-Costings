@@ -50,6 +50,10 @@ class PC_Widget_Batch_Costings extends \Elementor\Widget_Base {
             'my_cost_price'               => 'My Cost Price',
             'wholesale_price'             => 'Wholesale Price',
             'rrp'                         => 'RRP',
+            'packaging_unit_cost'         => 'Packaging Unit Cost',
+            'labour'                      => 'Labour',
+            'facility_running_costs'      => 'Facility Running Costs',
+            'misc_costs'                  => 'Misc Costs',
         );
     }
 
@@ -412,6 +416,10 @@ class PC_Widget_Batch_Costings extends \Elementor\Widget_Base {
             'my_cost_price'              => $my_cost_price,
             'wholesale_price'            => $wholesale_price,
             'rrp'                        => $rrp_value,
+            'packaging_unit_cost'        => $pkg_unit_cost,
+            'labour'                     => $labour,
+            'facility_running_costs'     => $facility,
+            'misc_costs'                 => $misc,
         );
     }
 
