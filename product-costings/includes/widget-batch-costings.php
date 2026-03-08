@@ -54,6 +54,8 @@ class PC_Widget_Batch_Costings extends \Elementor\Widget_Base {
             'labour'                      => 'Labour',
             'facility_running_costs'      => 'Facility Running Costs',
             'misc_costs'                  => 'Misc Costs',
+            'batch_size'                  => 'Batch Size',
+            'batch_size_with_waste'       => 'Batch Size with Waste',
         );
     }
 
@@ -295,7 +297,8 @@ class PC_Widget_Batch_Costings extends \Elementor\Widget_Base {
         $labels = $this->get_metric_options();
 
         // Determine which metrics are currency vs. plain number.
-        $non_currency = array( 'total_packaging_units' );
+        $non_currency    = array( 'total_packaging_units', 'batch_size', 'batch_size_with_waste' );
+        $whole_number    = array( 'total_packaging_units' );
 
         echo '<div class="pc-bc">';
 
@@ -308,8 +311,10 @@ class PC_Widget_Batch_Costings extends \Elementor\Widget_Base {
             $override = ! empty( $settings[ 'label_' . $key ] ) ? $settings[ 'label_' . $key ] : '';
             $label    = '' !== $override ? $override : $labels[ $key ];
 
-            if ( in_array( $key, $non_currency, true ) ) {
+            if ( in_array( $key, $whole_number, true ) ) {
                 $formatted = number_format( $raw, 0 );
+            } elseif ( in_array( $key, $non_currency, true ) ) {
+                $formatted = number_format( $raw, 2 );
             } else {
                 $formatted = $currency . number_format( $raw, 2 );
             }
@@ -420,6 +425,8 @@ class PC_Widget_Batch_Costings extends \Elementor\Widget_Base {
             'labour'                     => $labour,
             'facility_running_costs'     => $facility,
             'misc_costs'                 => $misc,
+            'batch_size'                 => $batch_size_raw,
+            'batch_size_with_waste'      => $batch_size,
         );
     }
 
