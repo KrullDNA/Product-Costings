@@ -49,6 +49,7 @@ final class Product_Costings {
      */
     public function register_front_assets() {
         wp_register_style( 'pc-formula-table-front', PC_PLUGIN_URL . 'assets/css/formula-table.css', array(), PC_VERSION );
+        wp_register_style( 'pc-batch-costings-front', PC_PLUGIN_URL . 'assets/css/batch-costings.css', array(), PC_VERSION );
     }
 
     /**
