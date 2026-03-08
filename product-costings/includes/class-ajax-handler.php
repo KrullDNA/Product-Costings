@@ -33,16 +33,26 @@ class PC_Ajax_Handler {
 
         $search = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : '';
 
+        global $wpdb;
+
+        // Search by title only — avoid matching post content, excerpt, or meta.
         $args = array(
             'post_type'      => 'trade-names',
             'post_status'    => 'publish',
             'posts_per_page' => 30,
-            's'              => $search,
             'orderby'        => 'title',
             'order'          => 'ASC',
         );
 
-        $query   = new WP_Query( $args );
+        if ( $search ) {
+            $like = '%' . $wpdb->esc_like( $search ) . '%';
+            $args['where_title_like'] = $like;
+            add_filter( 'posts_where', array( $this, 'filter_title_only' ), 10, 2 );
+        }
+
+        $query = new WP_Query( $args );
+
+        remove_filter( 'posts_where', array( $this, 'filter_title_only' ), 10 );
         $results = array();
 
         if ( $query->have_posts() ) {
@@ -57,6 +67,18 @@ class PC_Ajax_Handler {
         }
 
         wp_send_json_success( $results );
+    }
+
+    /**
+     * Filter WP_Query WHERE clause to only search post_title.
+     */
+    public function filter_title_only( $where, $query ) {
+        global $wpdb;
+        $like = $query->get( 'where_title_like' );
+        if ( $like ) {
+            $where .= $wpdb->prepare( " AND {$wpdb->posts}.post_title LIKE %s", $like );
+        }
+        return $where;
     }
 
     /**
