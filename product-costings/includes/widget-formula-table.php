@@ -160,20 +160,12 @@ class PC_Widget_Formula_Table extends \Elementor\Widget_Base {
         ) );
 
         $this->add_control( 'row_bg_color', array(
-            'label'     => esc_html__( 'Row Background', 'product-costings' ),
+            'label'     => esc_html__( 'Row Background (fallback)', 'product-costings' ),
             'type'      => \Elementor\Controls_Manager::COLOR,
             'default'   => '#ffffff',
+            'description' => esc_html__( 'Used when a phase has no colour assigned.', 'product-costings' ),
             'selectors' => array(
                 '{{WRAPPER}} .pc-ft tbody tr' => 'background-color: {{VALUE}};',
-            ),
-        ) );
-
-        $this->add_control( 'row_alt_bg_color', array(
-            'label'     => esc_html__( 'Alternate Row Background', 'product-costings' ),
-            'type'      => \Elementor\Controls_Manager::COLOR,
-            'default'   => '#f7f7f7',
-            'selectors' => array(
-                '{{WRAPPER}} .pc-ft tbody tr:nth-child(even)' => 'background-color: {{VALUE}};',
             ),
         ) );
 
@@ -208,6 +200,38 @@ class PC_Widget_Formula_Table extends \Elementor\Widget_Base {
         foreach ( $this->get_column_defs() as $key => $col ) {
             $this->register_column_style_section( $key, $col );
         }
+
+        /* ── Phase Colours ── */
+        $this->start_controls_section( 'section_style_phase_colours', array(
+            'label' => esc_html__( 'Phase Colours', 'product-costings' ),
+            'tab'   => \Elementor\Controls_Manager::TAB_STYLE,
+        ) );
+
+        $phase_defaults = array(
+            'A' => '#e8f5e9',
+            'B' => '#e3f2fd',
+            'C' => '#fff3e0',
+            'D' => '#fce4ec',
+            'E' => '#f3e5f5',
+            'F' => '#e0f7fa',
+            'G' => '#fff9c4',
+            'H' => '#efebe9',
+            'I' => '#e8eaf6',
+            'J' => '#f1f8e9',
+        );
+
+        foreach ( $phase_defaults as $letter => $default_color ) {
+            $this->add_control( 'phase_color_' . strtolower( $letter ), array(
+                'label'   => sprintf( esc_html__( 'Phase %s', 'product-costings' ), $letter ),
+                'type'    => \Elementor\Controls_Manager::COLOR,
+                'default' => $default_color,
+                'selectors' => array(
+                    '{{WRAPPER}} .pc-ft tbody tr[data-phase="' . $letter . '"]' => 'background-color: {{VALUE}};',
+                ),
+            ) );
+        }
+
+        $this->end_controls_section();
 
         /* ── Table Style ── */
         $this->start_controls_section( 'section_style_table', array(
@@ -359,7 +383,7 @@ class PC_Widget_Formula_Table extends \Elementor\Widget_Base {
                             $moq_display = $moq;
                         }
                         ?>
-                        <tr>
+                        <tr<?php echo $phase ? ' data-phase="' . esc_attr( strtoupper( $phase ) ) . '"' : ''; ?>>
                             <td class="pc-ft-phase"><?php echo esc_html( $phase ); ?></td>
                             <td class="pc-ft-ww"><?php echo $ww > 0 ? esc_html( $ww . '%' ) : ''; ?></td>
                             <td class="pc-ft-trade"><?php echo esc_html( $trade_name ); ?></td>

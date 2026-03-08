@@ -42,10 +42,6 @@
     background-color: #ffffff;
 }
 
-.pc-ft tbody tr:nth-child(even) {
-    background-color: #f7f7f7;
-}
-
 .pc-ft tbody tr:last-child td {
     border-bottom: none;
 }
