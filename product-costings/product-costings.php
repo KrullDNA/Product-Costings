@@ -18,6 +18,7 @@ define( 'PC_VERSION', '1.0.0' );
 require_once PC_PLUGIN_DIR . 'includes/class-formula-functions.php';
 require_once PC_PLUGIN_DIR . 'includes/class-product-metaboxes.php';
 require_once PC_PLUGIN_DIR . 'includes/class-ajax-handler.php';
+require_once PC_PLUGIN_DIR . 'includes/class-elementor-widget.php';
 
 /**
  * Main plugin class.
@@ -35,11 +36,19 @@ final class Product_Costings {
 
     private function __construct() {
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
+        add_action( 'wp_enqueue_scripts', array( $this, 'register_front_assets' ) );
         add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
 
         PC_Formula_Functions::instance();
         PC_Product_Metaboxes::instance();
         PC_Ajax_Handler::instance();
+    }
+
+    /**
+     * Register front-end assets (loaded on demand by the Elementor widget).
+     */
+    public function register_front_assets() {
+        wp_register_style( 'pc-formula-table-front', PC_PLUGIN_URL . 'assets/css/formula-table.css', array(), PC_VERSION );
     }
 
     /**
